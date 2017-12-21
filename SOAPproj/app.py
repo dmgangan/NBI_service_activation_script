@@ -1,5 +1,4 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
-#from data import Articles
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
@@ -7,7 +6,6 @@ from functools import wraps
 
 app = Flask(__name__)
 pass_hash='$5$rounds=535000$B/pDI473X4BVypX.$tJcgCJANcaNqQrj8e.aKhGA3r4hQId3tYFrwGCsJoI7'
-
 # Config MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -16,7 +14,6 @@ app.config['MYSQL_DB'] = 'soapapp'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # init MYSQL
 mysql = MySQL(app)
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -66,27 +63,40 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect(url_for('index'))
 
+#Dashboard
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get articles
+    result = cur.execute("SELECT * FROM vsats")
+    vsats = cur.fetchall()
+    if result > 0:
+        return render_template('dashboard.html', vsats=vsats)
+    else:
+        msg = 'No VSATs found'
+        return render_template('dashboard.html', msg=msg)
+    # Close connection
+    cur.close()
     return render_template('dashboard.html')
 
 # Add VSAT Form Class
-class AddVsatForm(Form):
-    t_id = StringField('TerminalID', [validators.Length(min=1, max=20)])
+class AddvsatForm(Form):
+    t_id = StringField('Terminal ID', [validators.Length(min=1, max=20)])
     t_name = StringField('TerminalName', [validators.Length(min=4, max=25)])
-    bh_vlan = StringField('BH_vlan', [validators.Length(min=1, max=25)])
-    bh_name = StringField('BH_name', [validators.Length(min=2, max=25)])
-    bh_src = StringField('BH_src', [validators.Length(min=2, max=25)])
-    bh_src_ip = StringField('BH_src_ip', [validators.Length(min=7, max=25)])
-    t_rt_ip = StringField('Route', [validators.Length(min=7, max=25)])
-    t_rt_msk = StringField('Mask', [validators.Length(min=7, max=25)])
-    t_rt_gw = StringField('GW', [validators.Length(min=7, max=25)])
+    bh_vlan = StringField('BH VLAN', [validators.Length(min=1, max=25)])
+    bh_name = StringField('BH profile name', [validators.Length(min=2, max=25)])
+    bh_src = StringField('BH source (VR/PROFILE)', [validators.Length(min=2, max=25)])
+    bh_src_ip = StringField('BH source IP', [validators.Length(min=7, max=25)])
+    t_rt_ip = StringField('Route address', [validators.Length(min=7, max=25)])
+    t_rt_msk = StringField('Route mask', [validators.Length(min=7, max=25)])
+    t_rt_gw = StringField('Route gateway', [validators.Length(min=7, max=25)])
 
 # User Register
 @app.route('/add_vsat', methods=['GET', 'POST'])
 def add_vsat():
-    form = AddVsatForm(request.form)
+    form = AddvsatForm(request.form)
     if request.method == 'POST':
         if form.validate():
             t_id = form.t_id.data
@@ -97,26 +107,98 @@ def add_vsat():
             bh_src_ip = form.bh_src_ip.data
             t_rt_ip = form.t_rt_ip.data
             t_rt_msk = form.t_rt_msk.data
-            gw = form.t_rt_gw.data
-
+            t_rt_gw = form.t_rt_gw.data
             # Create cursor
             cur = mysql.connection.cursor()
-
             # Execute query
-            cur.execute("INSERT INTO vsats(t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_msk) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_msk))
-
-            # Commit to DB
-            mysql.connection.commit()
-
-            # Close connection
-            cur.close()
-
-            flash('You are now registered and can log in', 'success')
-
-            return redirect(url_for('dashboard'))
-        else: flash('Validation wrong', 'danger')
+            if not cur.execute("SELECT t_id FROM vsats WHERE t_id = %s", [t_id]):
+                cur.execute("INSERT INTO vsats(t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw))
+                # Commit to DB
+                mysql.connection.commit()
+                # Close connection
+                cur.close()
+                flash('VSAT '+t_id+' added successfuly', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Terminal ID already exists', 'danger')
+                return render_template('addvsat.html', form=form)
+        else:
+            flash('Validation wrong', 'danger')
+            return render_template('addvsat.html', form=form)
     return render_template('addvsat.html', form=form)
 
+#Delete VSAT
+@app.route('/delete_vsat/<string:id>', methods=['POST'])
+@is_logged_in
+def delete_vsat(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Execute
+    cur.execute("DELETE FROM vsats WHERE t_id = %s", [id])
+    # Commit to DB
+    mysql.connection.commit()
+    #Close connection
+    cur.close()
+    flash('VSAT '+id+' Deleted', 'success')
+    return redirect(url_for('dashboard'))
+
+# Edit VSAT
+@app.route('/edit_vsat/<string:id>', methods=['GET', 'POST'])
+@is_logged_in
+def edit_vsat(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+    # Get article by id
+    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
+    vsat = cur.fetchone()
+    cur.close()
+    # Get form
+    form = AddvsatForm(request.form)
+    # Populate article form fields
+    form.t_id.data=str(vsat['t_id'])
+    form.t_name.data=str(vsat['t_name'])
+    form.bh_vlan.data=str(vsat['bh_vlan'])
+    form.bh_name.data=str(vsat['bh_name'])
+    form.bh_src.data=str(vsat['bh_src'])
+    form.bh_src_ip.data=str(vsat['bh_src_ip'])
+    form.t_rt_ip.data=str(vsat['t_rt_ip'])
+    form.t_rt_msk.data=str(vsat['t_rt_msk'])
+    form.t_rt_gw.data=str(vsat['t_rt_gw'])
+
+    if request.method == 'POST' and form.validate():
+        t_name=request.form['t_name']
+        bh_name=request.form['bh_name']
+        bh_vlan=request.form['bh_vlan']
+        bh_src=request.form['bh_src']
+        bh_src_ip=request.form['bh_src_ip']
+        t_rt_ip=request.form['t_rt_ip']
+        t_rt_msk=request.form['t_rt_msk']
+        t_rt_gw=request.form['t_rt_gw']
+        # Create Cursor
+        cur = mysql.connection.cursor()
+        app.logger.info(t_name)
+        # Execute
+        cur.execute ("UPDATE vsats SET t_name=%s, bh_vlan=%s, bh_name=%s, bh_src=%s, bh_src_ip=%s, t_rt_ip=%s, t_rt_msk=%s, t_rt_gw=%s WHERE t_id=%s",(t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw, id))
+        # Commit to DB
+        mysql.connection.commit()
+        #Close connection
+        cur.close()
+        flash('VSAT {} Updated'.format(id), 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('edit_vsat.html', form=form, id=id)
+
+#Single VSAT
+@app.route('/vsat/<string:id>/')
+def vsat(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get article
+    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
+
+    vsat = cur.fetchone()
+
+    return render_template('vsat.html', vsat=vsat)
 if __name__ == '__main__':
     app.secret_key='secret123'
     app.run(host='127.0.0.1', port=5011, debug=True)

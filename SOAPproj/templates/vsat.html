@@ -1,0 +1,134 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <a href="/dashboard" class="btn btn-success">< Back</a>
+  <h1>{{vsat.t_id}}</h1>
+<table class="table table-striped">
+
+  <tr>
+    <th>Terminal ID</th>
+    <td>{{vsat.t_id}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+
+  </tr>
+  <tr>
+    <th>Terminal Name</th>
+    <td>{{vsat.t_name}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>BH VLAN</th>
+    <td>{{vsat.bh_vlan}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>BH Name</th>
+    <td>{{vsat.bh_name}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>BH Source</th>
+    <td>{{vsat.bh_src}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>BH Source IP</th>
+    <td>{{vsat.bh_src_ip}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>Route address</th>
+    <td>{{vsat.t_rt_ip}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>Route mask</th>
+    <td>{{vsat.t_rt_msk}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <th>Route gateway</th>
+    <td>{{vsat.t_rt_gw}}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+
+  </tr>
+</table>
+<a href="/edit_vsat/{{vsat.t_id}}" class="btn btn-default pull-left">Edit </a>
+<script>
+function ConfirmDelete()
+{
+  var x = confirm("Are you sure you want to delete?");
+  if (x)
+      return true;
+  else
+    return false;
+}
+</script>
+  <form action="{{url_for('delete_vsat', id=vsat.t_id)}}" method="post">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="submit" value="Delete" class="btn btn-danger pull-right" Onclick="return ConfirmDelete()">
+  </form>
+{% endblock %}

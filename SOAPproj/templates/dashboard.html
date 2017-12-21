@@ -2,28 +2,48 @@
 
 {% block body %}
   <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
-  <a class="btn btn-success" href="/add_vsat"> Add VSAT</a>
+  <a class="btn btn-success" href="/add_vsat">Add VSAT</a>
   <hr>
   <table class="table table-striped">
     <tr>
-      <th>ID</th>
-      <th>Title</th>
-      <th>Author</th>
-      <th>Date</th>
+      <th>T ID</th>
+      <th>Name</th>
+      <th>BH VLAN</th>
+      <th>BH Name</th>
+      <th>BH SRC</th>
+      <th>BH SRC IP</th>
+      <th>Route</th>
+      <th>Mask</th>
+      <th>Gateway</th>
       <th></th>
       <th></th>
     </tr>
-    {% for article in articles %}
+    {% for vsat in vsats %}
       <tr>
-        <td>{{article.id}}</td>
-        <td>{{article.title}}</td>
-        <td>{{article.author}}</td>
-        <td>{{article.create_date}}</td>
-        <td><a href="edit_article/{{article.id}}" class="btn btn-default pull-right">Edit</a></td>
+        <td><a href="vsat/{{vsat.t_id}}">{{vsat.t_id}}</a></td>
+        <td>{{vsat.t_name}}</td>
+        <td>{{vsat.bh_vlan}}</td>
+        <td>{{vsat.bh_name}}</td>
+        <td>{{vsat.bh_src}}</td>
+        <td>{{vsat.bh_src_ip}}</td>
+        <td>{{vsat.t_rt_ip}}</td>
+        <td>{{vsat.t_rt_msk}}</td>
+        <td>{{vsat.t_rt_gw}}</td>
+        <td><a href="edit_vsat/{{vsat.t_id}}" class="btn btn-default pull-right">Edit</a></td>
         <td>
-          <form action="{{url_for('delete_article', id=article.id)}}" method="post">
+        <script>
+        function ConfirmDelete()
+        {
+          var x = confirm("Are you sure you want to delete?");
+          if (x)
+              return true;
+          else
+            return false;
+        }
+        </script>
+          <form action="{{url_for('delete_vsat', id=vsat.t_id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete" class="btn btn-danger">
+            <input type="submit" value="Delete" class="btn btn-danger" Onclick="return ConfirmDelete()">
           </form>
         </td>
       </tr>

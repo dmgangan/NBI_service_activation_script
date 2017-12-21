@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <a href="/dashboard" class="btn btn-success">< Back</a>
+  <h1>Edit:  <small>{{id}}</small></h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="">
+    <div class="form-group">
+      {{render_field(form.t_name, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.bh_vlan, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.bh_name, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.bh_src, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.bh_src_ip, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.t_rt_ip, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.t_rt_msk, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.t_rt_gw, class_="form-control")}}
+    </div>
+    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
+  </form>
+{% endblock %}
