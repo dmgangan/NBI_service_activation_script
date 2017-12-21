@@ -10,11 +10,12 @@
       <th>Name</th>
       <th>BH VLAN</th>
       <th>BH Name</th>
-      <th>BH SRC</th>
-      <th>BH SRC IP</th>
+      <th>BH src</th>
+      <th>BH src IP</th>
+      <th>S.Route</th>
       <th>Route</th>
-      <th>Mask</th>
       <th>Gateway</th>
+      <th>Service</th>
       <th></th>
       <th></th>
     </tr>
@@ -26,9 +27,10 @@
         <td>{{vsat.bh_name}}</td>
         <td>{{vsat.bh_src}}</td>
         <td>{{vsat.bh_src_ip}}</td>
+        <td>{{vsat.is_route}}</td>
         <td>{{vsat.t_rt_ip}}</td>
-        <td>{{vsat.t_rt_msk}}</td>
         <td>{{vsat.t_rt_gw}}</td>
+        <td>{{vsat.is_service}}</td>
         <td><a href="edit_vsat/{{vsat.t_id}}" class="btn btn-default pull-right">Edit</a></td>
         <td>
         <script>

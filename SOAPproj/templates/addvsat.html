@@ -18,10 +18,13 @@
       {{render_field(form.bh_name, class_="form-control")}}
     </div>
     <div class="form-group">
-      {{render_field(form.bh_src, class_="form-control")}}
+      {{render_field(form.bh_src, class_="uk-input")}}
     </div>
     <div class="form-group">
       {{render_field(form.bh_src_ip, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.is_route, class_="uk-input")}}
     </div>
     <div class="form-group">
       {{render_field(form.t_rt_ip, class_="form-control")}}
@@ -31,6 +34,9 @@
     </div>
     <div class="form-group">
       {{render_field(form.t_rt_gw, class_="form-control")}}
+    </div>
+    <div class="form-group">
+      {{render_field(form.is_service, class_="uk-input")}}
     </div>
     <p><input type="submit" class="btn btn-primary" value="Submit"></p>
   </form>

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, TextAreaField, PasswordField, RadioField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -87,12 +87,13 @@ class AddvsatForm(Form):
     t_name = StringField('TerminalName', [validators.Length(min=4, max=25)])
     bh_vlan = StringField('BH VLAN', [validators.Length(min=1, max=25)])
     bh_name = StringField('BH profile name', [validators.Length(min=2, max=25)])
-    bh_src = StringField('BH source (VR/PROFILE)', [validators.Length(min=2, max=25)])
-    bh_src_ip = StringField('BH source IP', [validators.Length(min=7, max=25)])
+    bh_src = RadioField('Backhauling Source', choices=[('PROFILE','PROFILE'),('VR','VR')], default='PROFILE')
+    bh_src_ip = StringField('BH source IP', [validators.Length(min=7, max=25)], default="0.0.0.0")
+    is_route = RadioField('IP Route', choices=[('YES','YES'),('NO','NO')], default='YES')
     t_rt_ip = StringField('Route address', [validators.Length(min=7, max=25)])
     t_rt_msk = StringField('Route mask', [validators.Length(min=7, max=25)])
     t_rt_gw = StringField('Route gateway', [validators.Length(min=7, max=25)])
-
+    is_service = RadioField('In service now', choices=[('YES','YES'),('NO','NO')], default='YES')
 # User Register
 @app.route('/add_vsat', methods=['GET', 'POST'])
 def add_vsat():
@@ -105,14 +106,16 @@ def add_vsat():
             bh_name = form.bh_name.data
             bh_src = form.bh_src.data
             bh_src_ip = form.bh_src_ip.data
+            is_route = form.is_route.data
             t_rt_ip = form.t_rt_ip.data
             t_rt_msk = form.t_rt_msk.data
             t_rt_gw = form.t_rt_gw.data
+            is_service = form.is_service.data
             # Create cursor
             cur = mysql.connection.cursor()
             # Execute query
             if not cur.execute("SELECT t_id FROM vsats WHERE t_id = %s", [t_id]):
-                cur.execute("INSERT INTO vsats(t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)", (t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw))
+                cur.execute("INSERT INTO vsats(t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, is_route, t_rt_ip, t_rt_msk, t_rt_gw, is_service) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (t_id, t_name, bh_vlan, bh_name, bh_src, bh_src_ip, is_route, t_rt_ip, t_rt_msk, t_rt_gw, is_service))
                 # Commit to DB
                 mysql.connection.commit()
                 # Close connection
@@ -162,6 +165,7 @@ def edit_vsat(id):
     form.bh_name.data=str(vsat['bh_name'])
     form.bh_src.data=str(vsat['bh_src'])
     form.bh_src_ip.data=str(vsat['bh_src_ip'])
+    form.is_route.data = str(vsat['is_route'])
     form.t_rt_ip.data=str(vsat['t_rt_ip'])
     form.t_rt_msk.data=str(vsat['t_rt_msk'])
     form.t_rt_gw.data=str(vsat['t_rt_gw'])
@@ -172,6 +176,7 @@ def edit_vsat(id):
         bh_vlan=request.form['bh_vlan']
         bh_src=request.form['bh_src']
         bh_src_ip=request.form['bh_src_ip']
+        is_route=request.form['is_route']
         t_rt_ip=request.form['t_rt_ip']
         t_rt_msk=request.form['t_rt_msk']
         t_rt_gw=request.form['t_rt_gw']
@@ -179,7 +184,7 @@ def edit_vsat(id):
         cur = mysql.connection.cursor()
         app.logger.info(t_name)
         # Execute
-        cur.execute ("UPDATE vsats SET t_name=%s, bh_vlan=%s, bh_name=%s, bh_src=%s, bh_src_ip=%s, t_rt_ip=%s, t_rt_msk=%s, t_rt_gw=%s WHERE t_id=%s",(t_name, bh_vlan, bh_name, bh_src, bh_src_ip, t_rt_ip, t_rt_msk, t_rt_gw, id))
+        cur.execute ("UPDATE vsats SET t_name=%s, bh_vlan=%s, bh_name=%s, bh_src=%s, bh_src_ip=%s, is_route=%s, t_rt_ip=%s, t_rt_msk=%s, t_rt_gw=%s WHERE t_id=%s",(t_name, bh_vlan, bh_name, bh_src, bh_src_ip, is_route, t_rt_ip, t_rt_msk, t_rt_gw, id))
         # Commit to DB
         mysql.connection.commit()
         #Close connection
