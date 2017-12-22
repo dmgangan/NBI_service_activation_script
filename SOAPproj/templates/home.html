@@ -5,7 +5,8 @@
     <h1>Welcome To TETRAapp</h1>
     <p class="lead"> This application is build to manage TETRA service over the Gilat SEIIc VSATs</p>
     {% if session.logged_in != NULL %}
-      <a href="/dashboard" class="btn btn-success btn-lg">Dashboard</a>
+      <a href="/dashboard" class="btn btn-success btn-lg">Manage</a>
+      <a href="/dashboard" class="btn btn-primary btn-lg">Provision</a>
     {% endif %}
     {% if session.logged_in == NULL %}
     <form action="" method="POST">

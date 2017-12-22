@@ -120,7 +120,7 @@ def stop(id):
     mysql.connection.commit()
     #Close connection
     cur.close()
-    flash('VSAT '+id+' stopped', 'success')
+    flash('VSAT '+id+' stopped', 'warning')
     return redirect(url_for('status'))
 
 
