@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Status <small>{{ count['COUNT(*)'] }}</small></h1>
+  <a class="btn btn-default" href="/status">All</a>
+  <a class="btn btn-default" href="/status/in">In service</a>
+  <a class="btn btn-default" href="/status/out">Out service</a>
+  <hr>
+  <table class="table table-striped">
+    <tr>
+      <th>T ID</th>
+      <th>Name</th>
+      <th>BH VLAN</th>
+      <th>BH Name</th>
+      <th>Route</th>
+      <th>Service</th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for vsat in vsats %}
+      <tr>
+        <td><a href="vsat/{{vsat.t_id}}">{{vsat.t_id}}</a></td>
+        <td>{{vsat.t_name}}</td>
+        <td>{{vsat.bh_vlan}}</td>
+        <td>{{vsat.bh_name}}</td>
+        <td>{{vsat.is_route}}</td>
+        {% if vsat.is_service=='YES' %}
+          <td><font color="green">{{vsat.is_service}}</font></td>
+          <td>
+            <form action="{{url_for('stop', id=vsat.t_id)}}" method="post">
+              <input type="hidden" name="_method" value="Stop">
+              <input type="submit" value="Stop" class="btn btn-danger">
+            </form>
+          </td>
+        {% else %}
+          <td><font color="red">{{vsat.is_service}}</font></td>
+          <td>
+            <form action="{{url_for('start', id=vsat.t_id)}}" method="post">
+              <input type="hidden" name="_method" value="Start">
+              <input type="submit" value="Start" class="btn btn-success">
+            </form>
+          </td>
+        {% endif %}
+        <td></td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

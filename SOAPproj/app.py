@@ -63,6 +63,67 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect(url_for('index'))
 
+# Status
+@app.route('/status', defaults={'id': None})
+@app.route('/status/<string:id>')
+@is_logged_in
+def status(id):
+    if id==None:
+        # Create cursor
+        cur = mysql.connection.cursor()
+        # Get articles
+        result = cur.execute("SELECT * FROM vsats")
+        vsats = cur.fetchall()
+        count_r = cur.execute("SELECT COUNT(*) FROM vsats")
+        count = cur.fetchone()
+        cur.close()
+        return render_template('status.html', vsats=vsats, count=count)
+    else:
+        if id=='in':
+            is_serv='YES'
+        else:
+            is_serv='NO'
+        # Create cursor
+        cur = mysql.connection.cursor()
+        # Get articles
+        result = cur.execute("SELECT * FROM vsats WHERE is_service=%s",[is_serv])
+        vsats = cur.fetchall()
+        count_r = cur.execute("SELECT COUNT(*) FROM vsats WHERE is_service=%s",[is_serv])
+        count = cur.fetchone()
+        cur.close()
+        return render_template('status.html', vsats=vsats, count=count)
+
+#Start VSAT
+@app.route('/start/<string:id>', methods=['POST'])
+@is_logged_in
+def start(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Execute
+    cur.execute("UPDATE vsats SET is_service='YES' WHERE t_id = %s", [id])
+    # Commit to DB
+    mysql.connection.commit()
+    #Close connection
+    cur.close()
+    flash('VSAT '+id+' started', 'success')
+    return redirect(url_for('status'))
+
+#Stop VSAT
+@app.route('/stop/<string:id>', methods=['POST'])
+@is_logged_in
+def stop(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Execute
+    cur.execute("UPDATE vsats SET is_service='NO' WHERE t_id = %s", [id])
+    # Commit to DB
+    mysql.connection.commit()
+    #Close connection
+    cur.close()
+    flash('VSAT '+id+' stopped', 'success')
+    return redirect(url_for('status'))
+
+
 #Dashboard
 @app.route('/dashboard')
 @is_logged_in
@@ -72,8 +133,11 @@ def dashboard():
     # Get articles
     result = cur.execute("SELECT * FROM vsats")
     vsats = cur.fetchall()
+    count_r = cur.execute("SELECT COUNT(*) FROM vsats")
+    count = cur.fetchone()
+
     if result > 0:
-        return render_template('dashboard.html', vsats=vsats)
+        return render_template('dashboard.html', vsats=vsats, count=count)
     else:
         msg = 'No VSATs found'
         return render_template('dashboard.html', msg=msg)
