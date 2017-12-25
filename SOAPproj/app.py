@@ -305,6 +305,39 @@ def vsat(id):
     vsat = cur.fetchone()
 
     return render_template('vsat.html', vsat=vsat)
+
+@app.route('/test', defaults={'id': None})
+@app.route('/test/<string:id>')
+@is_logged_in
+def status_s(id):
+    if id==None:
+        # Create cursor
+        cur = mysql.connection.cursor()
+        # Get articles
+        result = cur.execute("SELECT * FROM vsats")
+        vsats = cur.fetchall()
+        count_r = cur.execute("SELECT COUNT(*) FROM vsats")
+        count = cur.fetchone()
+        cur.close()
+        return render_template('status0.html', vsats=vsats, count=count)
+    else:
+        if id=='in':
+            is_serv='YES'
+        else:
+            is_serv='NO'
+        # Create cursor
+        cur = mysql.connection.cursor()
+        # Get articles
+        result = cur.execute("SELECT * FROM vsats WHERE is_service=%s",[is_serv])
+        vsats = cur.fetchall()
+        count_r = cur.execute("SELECT COUNT(*) FROM vsats WHERE is_service=%s",[is_serv])
+        count = cur.fetchone()
+        cur.close()
+        return render_template('status0.html', vsats=vsats, count=count)
+
+@app.route('/test2')
+def test2():
+    return render_template('test.html')
 if __name__ == '__main__':
     app.secret_key='secret123'
     app.run(host='127.0.0.1', port=5011, debug=True)

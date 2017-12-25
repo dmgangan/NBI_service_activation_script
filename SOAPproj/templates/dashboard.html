@@ -4,7 +4,9 @@
   <h1>Provisioning <small> {{ count['COUNT(*)'] }}</small></h1>
   <a class="btn btn-success" href="/add_vsat">Add VSAT</a>
   <hr>
+  <input class="form-control" id="myInput" type="text" placeholder="Search..">
   <table class="table table-striped">
+<thead>
     <tr>
       <th>T ID</th>
       <th>Name</th>
@@ -19,6 +21,8 @@
       <th></th>
       <th></th>
     </tr>
+</thead>
+<tbody id="dashTable">
     {% for vsat in vsats %}
       <tr>
         <td><a href="vsat/{{vsat.t_id}}">{{vsat.t_id}}</a></td>
@@ -51,4 +55,15 @@
       </tr>
     {% endfor %}
   </table>
+</tbody>
+<script>
+$(document).ready(function(){
+  $("#myInput").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $("#dashTable tr").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+</script>
 {% endblock %}
