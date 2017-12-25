@@ -5,10 +5,10 @@
   <a class="btn btn-default" href="/status">All</a>
   <a class="btn btn-default" href="/status/in">In service</a>
   <a class="btn btn-default" href="/status/out">Out service</a>
-  <form action="{{url_for('mstart')}}" method="post">
+  <form action="{{url_for('mstart')}}" method="post" name="StartSelected">
     <input type="hidden" name="_method" value="Start">
-    <input type="submit" value="Stop Selected" class="btn btn-danger pull-right">
-    <input type="submit" value="Start Selected" class="btn btn-success pull-right"
+    <input type="submit" value="Stop Selected" class="btn btn-danger pull-right" name="StartSelected">
+    <input type="submit" value="Start Selected" class="btn btn-success pull-right" name="StartSelected">
   </form>
   <hr>
   <input class="form-control" id="myInput" type="text" placeholder="Search..">

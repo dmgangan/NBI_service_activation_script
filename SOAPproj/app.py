@@ -344,9 +344,6 @@ def status_s(id):
         cur.close()
         return render_template('status0.html', vsats=vsats, count=count)
 
-@app.route('/test2')
-def test2():
-    return render_template('test.html')
 if __name__ == '__main__':
     app.secret_key='secret123'
     app.run(host='127.0.0.1', port=5011, debug=True)
