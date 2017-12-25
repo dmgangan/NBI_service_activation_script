@@ -11,6 +11,7 @@ class NbiFunction(object):
     nbi_password='manager'
     clinet = None
     nbi_session = None
+    info_flash = None
     def __init__(self,vsat):
         t_id=vsat['t_id']
         t_name=vsat['t_name']
@@ -53,7 +54,7 @@ class NbiFunction(object):
         self.req_cpe_bh = dict(req_cpe, **req_bh)
         self.req_cpe_rt = dict(req_cpe, **req_rt)
         print ('Init completed\n')
-    def req(self, task):
+    def req(self, task, safe=None):
         task=str(task)
         tasks={
             'addBH':{'reqst':'cpeAddBHtoVR','reqst_data':'req_cpe_bh'},
@@ -65,11 +66,16 @@ class NbiFunction(object):
             try:
                 response = getattr(self.client.service, tasks[task]['reqst'])(**getattr(self, tasks[task]['reqst_data']))
             except exceptions.Fault as error:
-                raise ValueError(error.message)
+                if safe == 'safe':
+                    if str(error).startswith('Static route') and str(error).endswith(('does not exist','already exists')):
+                        self.info_flash =str(error.message)
+                        pass
+                    else: raise ValueError(error.message)
+                else: raise ValueError(error.message)
             except requests.exceptions.ConnectionError as http_error:
-                raise ValueError('Connection problem')
+                raise ValueError(tasks[task]['reqst']+': Connection problem')
             except:
-                raise ValueError('Unexpected problem')
+                raise ValueError(tasks[task]['reqst']+': Unexpected problem')
 
     def addBH(self):
         self.req('addBH')
@@ -77,11 +83,21 @@ class NbiFunction(object):
     def deleteBH(self):
         self.req('deleteBH')
 
-    def addRoute(self):
-        self.req('addRoute')
+    def addRoute(self, safe=None):
+        self.req('addRoute',safe)
 
-    def deleteRoute(self):
-        self.req('deleteRoute')
+    def deleteRoute(self,safe=None):
+        self.req('deleteRoute',safe)
+
+    def tetraOn(self):
+        self.deleteRoute('safe')
+        self.addBH()
+        self.addRoute('safe')
+
+    def tetraOff(self):
+        self.deleteRoute('safe')
+        self.deleteBH()
+        self.addRoute('safe')
 
     def test(self):
         print (self.req_cpe_bh)

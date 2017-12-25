@@ -117,6 +117,22 @@
   </tr>
 </table>
 <a href="/edit_vsat/{{vsat.t_id}}" class="btn btn-default pull-left">Edit </a>
+<form action="{{url_for('bh', id=vsat.t_id, task='addBH')}}" method="post">
+  <input type="hidden" name="_method" value="AddBH">
+  <input type="submit" value="AddBH" class="btn btn-default pull-left">
+</form>
+<form action="{{url_for('bh', id=vsat.t_id, task='deleteBH')}}" method="post">
+  <input type="hidden" name="_method" value="DeleteBH">
+  <input type="submit" value="DeleteBH" class="btn btn-default pull-left">
+</form>
+<form action="{{url_for('rt', id=vsat.t_id, task='addRoute')}}" method="post">
+  <input type="hidden" name="_method" value="AddRoute">
+  <input type="submit" value="AddRoute" class="btn btn-default pull-left">
+</form>
+<form action="{{url_for('rt', id=vsat.t_id, task='deleteRoute')}}" method="post">
+  <input type="hidden" name="_method" value="DeleteRoute">
+  <input type="submit" value="DeleteRoute" class="btn btn-default pull-left">
+</form>
 <script>
 function ConfirmDelete()
 {

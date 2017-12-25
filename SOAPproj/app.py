@@ -15,6 +15,44 @@ app.config['MYSQL_DB'] = 'soapapp'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # init MYSQL
 mysql = MySQL(app)
+def turn(mode,id):
+    valid = {
+        'on':{'msg':'started','funct':'tetraOn','db':{'is_service':'\'YES\''}},
+        'off':{'msg':'stopped','funct':'tetraOff','db':{'is_service':'\'NO\''}},
+        'addRoute':{'msg':'route added','funct':'addRoute','db':{'is_route':'\'YES\''}},
+        'deleteRoute':{'msg':'route deleted','funct':'deleteRoute','db':{'is_route':'\'NO\''}},
+        'addBH':{'msg':'BH added','funct':'addBH','db':{'is_service':'\'YES\''}},
+        'deleteBH':{'msg':'BH deleted','funct':'deleteBH','db':{'is_service':'\'NO\''}}
+        }
+    if mode not in valid.keys():
+        raise ValueError("Status must be one of: {}".format(valid.keys()))
+    # Create cursor
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
+    vsat = cur.fetchone()
+    sp=nbi.NbiFunction(vsat)
+    try:
+        getattr(sp,valid[mode]['funct'])()
+        # Execute
+        for db_cell, db_value in valid[mode]['db'].items():
+            query='UPDATE vsats SET {0}={1} WHERE t_id = {2}'.format(db_cell,db_value,id)
+            print (query)
+            cur.execute(query)
+        # Commit to DB
+        mysql.connection.commit()
+        #Close connection
+        cur.close()
+        flash_msg={'success':{'msg':'VSAT {} {}'.format(id,valid[mode]['msg']), 'type':'success'}}
+        if sp.info_flash is not None:
+            flash_info={'info':{'msg':sp.info_flash,'type':'info'}}
+            result=dict(flash_msg, **flash_info)
+        else: result=dict(flash_msg)
+    except Exception as error:
+        result={'error':{'msg':'CPE {} {} : {}'.format(id,valid[mode]['funct'],str(error)), 'type':'danger'}}
+    for key, msg in result.items():
+        flash(msg['msg'],msg['type'])
+    return result
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -98,58 +136,28 @@ def status(id):
 @app.route('/start/<string:id>', methods=['POST'])
 @is_logged_in
 def start(id):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
-    vsat = cur.fetchone()
-    sp=nbi.NbiFunction(vsat)
-    try:
-        try:
-            sp.deleteRoute()
-        except Exception as error:
-            if str(error).startswith('Static route') and str(error).endswith('does not exist'):
-                flash('Step 1 had:'+str(error), 'info')
-                pass
-        sp.addBH()
-        sp.addRoute()
-
-        # Execute
-        cur.execute("UPDATE vsats SET is_service='YES' WHERE t_id = %s", [id])
-        # Commit to DB
-        mysql.connection.commit()
-        #Close connection
-        cur.close()
-        flash('VSAT '+id+' started', 'success')
-        return redirect(url_for('status'))
-    except Exception as error:
-        flash('CPE '+id+' start: '+str(error), 'danger')
-        return redirect(url_for('status'))
-
+    turn('on',id)
+    return redirect(url_for('status'))
 #Stop VSAT
 @app.route('/stop/<string:id>', methods=['POST'])
 @is_logged_in
 def stop(id):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
-    vsat = cur.fetchone()
-    sp=nbi.NbiFunction(vsat)
-    try:
-        sp.deleteRoute()
-        sp.deleteBH()
-        sp.addRoute()
-        # Execute
-        cur.execute("UPDATE vsats SET is_service='NO' WHERE t_id = %s", [id])
-        # Commit to DB
-        mysql.connection.commit()
-        #Close connection
-        cur.close()
-        flash('VSAT '+id+' stopped', 'success')
-        return redirect(url_for('status'))
-    except Exception as error:
-        flash('CPE '+id+' stop: '+str(error), 'danger')
-        return redirect(url_for('status'))
+    turn('off',id)
+    return redirect(url_for('status'))
 
+# BH add/delete
+@app.route('/bh/<string:id>/<string:task>', methods=['POST'])
+@is_logged_in
+def bh(id,task):
+    turn(task,id)
+    return redirect(url_for('vsat',id=id))
+
+# route add/delete
+@app.route('/rt/<string:id>/<string:task>', methods=['POST'])
+@is_logged_in
+def rt(id,task):
+    turn(task,id)
+    return redirect(url_for('vsat',id=id))
 
 #Dashboard
 @app.route('/dashboard')
