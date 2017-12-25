@@ -68,7 +68,7 @@ def index():
                 session['logged_in'] = True
                 session['username'] = username_candidate
                 flash('You are now logged in', 'success')
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('index'))
             else:
                 error = 'Invalid login'
                 return render_template('home.html', error=error)
@@ -138,6 +138,15 @@ def status(id):
 def start(id):
     turn('on',id)
     return redirect(url_for('status'))
+
+#Multiple start
+@app.route('/mstart', methods=['POST'])
+@is_logged_in
+def mstart():
+    if request.method == 'POST':
+        ls=request.form.getlist('check')
+        print(ls)
+    return render_template('test.html',ls=ls)
 #Stop VSAT
 @app.route('/stop/<string:id>', methods=['POST'])
 @is_logged_in

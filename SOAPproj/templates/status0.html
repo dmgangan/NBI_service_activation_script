@@ -5,12 +5,18 @@
   <a class="btn btn-default" href="/status">All</a>
   <a class="btn btn-default" href="/status/in">In service</a>
   <a class="btn btn-default" href="/status/out">Out service</a>
+  <form action="{{url_for('mstart')}}" method="post">
+    <input type="hidden" name="_method" value="Start">
+    <input type="submit" value="Stop Selected" class="btn btn-danger pull-right">
+    <input type="submit" value="Start Selected" class="btn btn-success pull-right"
+  </form>
   <hr>
   <input class="form-control" id="myInput" type="text" placeholder="Search..">
   <table class="table table-striped">
 <thead>
     <tr>
-      <th>T ID</th>
+      <th><input type="checkbox" name="all" onClick="toggle(this)" /></th>
+      <th>ID</th>
       <th>Name</th>
       <th>BH VLAN</th>
       <th>BH Name</th>
@@ -23,6 +29,9 @@
 <tbody id="myTable">
     {% for vsat in vsats %}
       <tr>
+        <td>
+            <input type="checkbox" name="check" value={{vsat.bh_name}}>
+      </td>
         <td><a href="vsat/{{vsat.t_id}}">{{vsat.t_id}}</a></td>
         <td>{{vsat.t_name}}</td>
         <td>{{vsat.bh_vlan}}</td>
@@ -50,7 +59,7 @@
     {% endfor %}
   </tbody>
   </table>
-
+</form>
 <script>
 $(document).ready(function(){
   $("#myInput").on("keyup", function() {
@@ -59,6 +68,27 @@ $(document).ready(function(){
       $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
     });
   });
+});
+</script>
+<script>
+function toggle(source) {
+  checkboxes = document.getElementsByName('check');
+  for(var i=0, n=checkboxes.length;i<n;i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+</script>
+<script>
+$("input[name='check']"), submitButt = $("input[name='StartSelected']");
+var checkboxes = $("input[name='check']"),
+  submitButtList = $("#StartSelected");
+checkboxes.click(function() {
+  submitButt.attr("disabled", !checkboxes.is(":checked"));
+  if (!checkboxes.is(":checked")) {
+    submitButtList.addClass("disabled");
+  } else {
+    submitButtList.removeClass("disabled");
+  }
 });
 </script>
 {% endblock %}
