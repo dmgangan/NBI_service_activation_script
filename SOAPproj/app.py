@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, RadioField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+import nbi_actios as nbi
 
 app = Flask(__name__)
 pass_hash='$5$rounds=535000$B/pDI473X4BVypX.$tJcgCJANcaNqQrj8e.aKhGA3r4hQId3tYFrwGCsJoI7'
@@ -99,14 +100,30 @@ def status(id):
 def start(id):
     # Create cursor
     cur = mysql.connection.cursor()
-    # Execute
-    cur.execute("UPDATE vsats SET is_service='YES' WHERE t_id = %s", [id])
-    # Commit to DB
-    mysql.connection.commit()
-    #Close connection
-    cur.close()
-    flash('VSAT '+id+' started', 'success')
-    return redirect(url_for('status'))
+    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
+    vsat = cur.fetchone()
+    sp=nbi.NbiFunction(vsat)
+    try:
+        try:
+            sp.deleteRoute()
+        except Exception as error:
+            if str(error).startswith('Static route') and str(error).endswith('does not exist'):
+                flash('Step 1 had:'+str(error), 'info')
+                pass
+        sp.addBH()
+        sp.addRoute()
+
+        # Execute
+        cur.execute("UPDATE vsats SET is_service='YES' WHERE t_id = %s", [id])
+        # Commit to DB
+        mysql.connection.commit()
+        #Close connection
+        cur.close()
+        flash('VSAT '+id+' started', 'success')
+        return redirect(url_for('status'))
+    except Exception as error:
+        flash('CPE '+id+' start: '+str(error), 'danger')
+        return redirect(url_for('status'))
 
 #Stop VSAT
 @app.route('/stop/<string:id>', methods=['POST'])
@@ -114,14 +131,24 @@ def start(id):
 def stop(id):
     # Create cursor
     cur = mysql.connection.cursor()
-    # Execute
-    cur.execute("UPDATE vsats SET is_service='NO' WHERE t_id = %s", [id])
-    # Commit to DB
-    mysql.connection.commit()
-    #Close connection
-    cur.close()
-    flash('VSAT '+id+' stopped', 'warning')
-    return redirect(url_for('status'))
+    result = cur.execute("SELECT * FROM vsats WHERE t_id = %s", [id])
+    vsat = cur.fetchone()
+    sp=nbi.NbiFunction(vsat)
+    try:
+        sp.deleteRoute()
+        sp.deleteBH()
+        sp.addRoute()
+        # Execute
+        cur.execute("UPDATE vsats SET is_service='NO' WHERE t_id = %s", [id])
+        # Commit to DB
+        mysql.connection.commit()
+        #Close connection
+        cur.close()
+        flash('VSAT '+id+' stopped', 'success')
+        return redirect(url_for('status'))
+    except Exception as error:
+        flash('CPE '+id+' stop: '+str(error), 'danger')
+        return redirect(url_for('status'))
 
 
 #Dashboard
@@ -140,7 +167,7 @@ def dashboard():
         return render_template('dashboard.html', vsats=vsats, count=count)
     else:
         msg = 'No VSATs found'
-        return render_template('dashboard.html', msg=msg)
+        return render_template('dashboard.html', msg=msg, count={'COUNT(*)':0})
     # Close connection
     cur.close()
     return render_template('dashboard.html')
@@ -233,6 +260,7 @@ def edit_vsat(id):
     form.t_rt_ip.data=str(vsat['t_rt_ip'])
     form.t_rt_msk.data=str(vsat['t_rt_msk'])
     form.t_rt_gw.data=str(vsat['t_rt_gw'])
+    form.is_service.data=str(vsat['is_service'])
 
     if request.method == 'POST' and form.validate():
         t_name=request.form['t_name']
@@ -244,11 +272,12 @@ def edit_vsat(id):
         t_rt_ip=request.form['t_rt_ip']
         t_rt_msk=request.form['t_rt_msk']
         t_rt_gw=request.form['t_rt_gw']
+        is_service=request.form['is_service']
         # Create Cursor
         cur = mysql.connection.cursor()
         app.logger.info(t_name)
         # Execute
-        cur.execute ("UPDATE vsats SET t_name=%s, bh_vlan=%s, bh_name=%s, bh_src=%s, bh_src_ip=%s, is_route=%s, t_rt_ip=%s, t_rt_msk=%s, t_rt_gw=%s WHERE t_id=%s",(t_name, bh_vlan, bh_name, bh_src, bh_src_ip, is_route, t_rt_ip, t_rt_msk, t_rt_gw, id))
+        cur.execute ("UPDATE vsats SET t_name=%s, bh_vlan=%s, bh_name=%s, bh_src=%s, bh_src_ip=%s, is_route=%s, t_rt_ip=%s, t_rt_msk=%s, t_rt_gw=%s, is_service=%s WHERE t_id=%s",(t_name, bh_vlan, bh_name, bh_src, bh_src_ip, is_route, t_rt_ip, t_rt_msk, t_rt_gw, is_service, id))
         # Commit to DB
         mysql.connection.commit()
         #Close connection
