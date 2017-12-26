@@ -1,0 +1,23 @@
+CREATE TABLE cpes (
+                    subscriberId INT(15) PRIMARY KEY,
+                    description VARCHAR(20),
+                    managedGroupId VARCHAR(30),
+                    macAddress VARCHAR (20),
+                    slaName VARCHAR(20),
+                    slaNameBL VARCHAR(20),
+                    rtnClassifierName VARCHAR(20),
+                    rtnClassifierNameBL VARCHAR(20),
+                    operationalState VARCHAR(20),
+                    authorization VARCHAR(20),
+                    VRvlanId VARCHAR(20),
+                    VRsubscriberPublicIpAddress VARCHAR(20),
+                    VRipv4Prefix VARCHAR(20),
+                    VRenableBackhauling VARCHAR (20),
+                    BHName VARCHAR(20),
+                    BHcpeSideIPAddressSource VARCHAR(20),
+                    BHcpeSideIPAddressValue VARCHAR(20),
+                    RouteNetwork VARCHAR(20),
+                    RouteSubnetMask VARCHAR (20),
+                    RouteNextHop VARCHAR(20),
+                    is_service VARCHAR(20)
+                    );
