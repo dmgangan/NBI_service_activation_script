@@ -37,6 +37,7 @@
         <td>{{vsat.is_service}}</td>
         <td><a href="edit_vsat/{{vsat.t_id}}" class="btn btn-default pull-right">Edit</a></td>
         <td>
+
         <script>
         function ConfirmDelete()
         {
@@ -47,6 +48,7 @@
             return false;
         }
         </script>
+
           <form action="{{url_for('delete_vsat', id=vsat.t_id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
             <input type="submit" value="Delete" class="btn btn-danger" Onclick="return ConfirmDelete()">
@@ -56,6 +58,7 @@
     {% endfor %}
   </table>
 </tbody>
+
 <script>
 $(document).ready(function(){
   $("#myInput").on("keyup", function() {
@@ -66,4 +69,5 @@ $(document).ready(function(){
   });
 });
 </script>
+
 {% endblock %}
