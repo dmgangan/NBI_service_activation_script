@@ -9,7 +9,7 @@
     <input type="hidden" name="_method" value="Start">
     <input type="submit" value="Stop Selected" class="btn btn-danger pull-right" name="StartSelected">
     <input type="submit" value="Start Selected" class="btn btn-success pull-right" name="StartSelected">
-  </form>
+
   <hr>
   <input class="form-control" id="myInput" type="text" placeholder="Search..">
   <table class="table table-striped">
@@ -30,7 +30,7 @@
     {% for vsat in vsats %}
       <tr>
         <td>
-            <input type="checkbox" name="check" value={{vsat.bh_name}}>
+        <input type="checkbox" name="check" value={{vsat.t_id}}>
       </td>
         <td><a href="vsat/{{vsat.t_id}}">{{vsat.t_id}}</a></td>
         <td>{{vsat.t_name}}</td>
@@ -40,18 +40,12 @@
         {% if vsat.is_service=='YES' %}
           <td><font color="green">{{vsat.is_service}}</font></td>
           <td>
-            <form action="{{url_for('stop', id=vsat.t_id)}}" method="post">
-              <input type="hidden" name="_method" value="Stop">
-              <input type="submit" value="Stop" class="btn btn-danger">
-            </form>
+
           </td>
         {% else %}
           <td><font color="red">{{vsat.is_service}}</font></td>
           <td>
-            <form action="{{url_for('start', id=vsat.t_id)}}" method="post">
-              <input type="hidden" name="_method" value="Start">
-              <input type="submit" value="Start" class="btn btn-success">
-            </form>
+
           </td>
         {% endif %}
         <td></td>
